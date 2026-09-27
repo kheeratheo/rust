@@ -103,203 +103,63 @@ fn main() {
 
 | Syntax / Rule | Meaning | Example |
 |---|---|---|
-| `\|args\| expr` | ประกาศ Closure (Anonymous Function) โดยใช้ Pipe `\|...\|` ล้อม Parameters | `let add = \|a, b\| a + b;` |
-| `\|\| { ... }` | Closure ที่ไม่รับ Argument (ใช้ `\|\|`) และมี Body หลายบรรทัด | `let greet = \|\| { println!("Hi"); };` |
-| `move \|...\| { ... }` | บังคับให้ Closure **ย้าย Ownership** ของตัวแปรที่ capture เข้าไป แทนที่จะยืม (borrow) | `thread::spawn(move \|\| { println!("{:?}", data); });` |
-| `impl Fn(T) -> R` | คืนค่า Closure จากฟังก์ชัน แบบ Static Dispatch (Zero-cost, ไม่ allocate Heap) | `fn make() -> impl Fn(i32) -> i32 { move \|x\| x + 1 }` |
-| `Box<dyn Fn(T) -> R>` | คืนค่า Closure จากฟังก์ชัน แบบ Dynamic Dispatch (Heap Allocated, รองรับหลาย type) | `fn make() -> Box<dyn Fn(i32) -> i32> { Box::new(\|x\| x * 2) }` |
-| `.iter().filter().map().fold()` | Iterator Pipeline แบบ Functional — Rust compile เป็น loop เดียว (Zero-Cost Abstraction) | `vec.iter().filter(\|&&x\| x > 0).map(\|&x\| x * x).fold(0, \|a, x\| a + x);` |
+| `[syntax/rule]` | `[ความหมาย]` | `[ตัวอย่าง]` |
+| `[syntax/rule]` | `[ความหมาย]` | `[ตัวอย่าง]` |
+| `[syntax/rule]` | `[ความหมาย]` | `[ตัวอย่าง]` |
 
 ### Important Rules
 
-1. **Closure จะ capture ตัวแปรจาก Environment โดยอัตโนมัติ** — Compiler จะเลือกวิธีที่เข้มงวดน้อยที่สุดตามลำดับ: `&T` (Immutable Borrow → `Fn`) → `&mut T` (Mutable Borrow → `FnMut`) → `T` (Move/Ownership → `FnOnce`)
-2. **`FnOnce` closure เรียกใช้ได้เพียงครั้งเดียว** — เนื่องจาก Ownership ของตัวแปรที่ capture ถูก move เข้าไปแล้ว หาก Closure ทำ `drop()` หรือคืน Ownership ออกมา จะเรียกซ้ำอีกไม่ได้
-3. **ต้องใช้ `move` keyword เมื่อส่ง Closure ข้าม Thread** — เพราะ Thread ใหม่อาจมีอายุยาวกว่า scope ของตัวแปรเดิม Compiler จะบังคับให้ย้าย Ownership เพื่อป้องกัน dangling reference
-4. **`FnMut` closure ต้องผูกกับ `let mut`** — ตัวแปรที่เก็บ closure ที่แก้ไขค่า captured variable ต้องประกาศเป็น mutable ด้วย (`let mut closure = || { ... };`)
-5. **Iterator adaptor เป็น Lazy** — `.filter()`, `.map()` จะไม่ทำงานจนกว่าจะเรียก consuming adaptor เช่น `.fold()`, `.collect()`, `.for_each()` เพื่อ "ดึง" ค่าออกมา
+1. `[กฎสำคัญข้อที่ 1]`
+2. `[กฎสำคัญข้อที่ 2]`
+3. `[กฎสำคัญข้อที่ 3]`
 
 ---
 
 ## 6. Runnable Code Examples
 
 > **ข้อกำหนด:** Code ทุกตัวต้อง Compile และ Run ได้จริงก่อนนำมาใส่ในเอกสาร
->
-> Source code: [`closures_demo/src/main.rs`](file:///d:/rust-tutorial-2569-main/19-closures-functional-programming/closures_demo/src/main.rs)
 
-### Example 1 — Closure Traits: `Fn`, `FnMut`, `FnOnce`
+### Example 1 — `[ชื่อ Example]`
 
-**Purpose:** สาธิต 3 รูปแบบการ capture ตัวแปรของ Closure ตาม Trait ที่ Compiler เลือกให้อัตโนมัติ
+**Purpose:** `[ต้องการสาธิตอะไร]`
 
 ```rust
-fn demo_closure_traits() {
-    println!("\n--- [Demo 1] Closure Traits (Fn, FnMut, FnOnce) ---");
-
-    // 1.1 Fn: ยืมอ่านอย่างเดียว (Immutable Borrow)
-    let greeting = String::from("Hello");
-    let print_greeting = || println!("Fn trait: {}", greeting);
-    print_greeting();
-    println!("ค่า greeting ยังใช้ต่อได้: {}", greeting); // compile ผ่านเพราะแค่ยืมอ่าน
-
-    // 1.2 FnMut: ยืมแบบแก้ไขค่าได้ (Mutable Borrow)
-    let mut count = 0;
-    let mut increment = || {
-        count += 1;
-        println!("FnMut trait count: {}", count);
-    };
-    increment();
-    increment();
-    println!("Final count: {}", count);
-
-    // 1.3 FnOnce: ย้าย Ownership (Move/Consume) รันได้ครั้งเดียว
-    let data = vec![1, 2, 3];
-    let consume_data = || {
-        println!("FnOnce trait: vector length = {}", data.len());
-        drop(data); // data ถูกทำลายทิ้งตรงนี้
-    };
-    consume_data();
-    // consume_data(); // <-- หากเอาคอมเมนต์ออกจะ Compile Error ทันที!
+fn main() {
+    // Write your runnable Rust code here
 }
 ```
 
 **Expected Output**
 
 ```text
---- [Demo 1] Closure Traits (Fn, FnMut, FnOnce) ---
-Fn trait: Hello
-ค่า greeting ยังใช้ต่อได้: Hello
-FnMut trait count: 1
-FnMut trait count: 2
-Final count: 2
-FnOnce trait: vector length = 3
+[expected output]
 ```
 
 **Explanation**
 
-- **`Fn` (Immutable Borrow):** `print_greeting` ยืมค่า `greeting` แบบอ่านอย่างเดียว (`&String`) — เรียกซ้ำกี่ครั้งก็ได้ และตัวแปรเดิมยังใช้ต่อได้หลัง closure
-- **`FnMut` (Mutable Borrow):** `increment` ยืม `count` แบบ `&mut` เพื่อแก้ไขค่า — ต้องประกาศ `let mut increment` จึงจะเรียกได้ และเรียกซ้ำได้หลายครั้ง
-- **`FnOnce` (Move/Consume):** `consume_data` ย้าย Ownership ของ `data` เข้ามาแล้วทำ `drop()` — เรียกได้ครั้งเดียวเท่านั้น หากเรียกซ้ำจะ Compile Error
+`[อธิบาย code ทีละส่วนที่สำคัญ]`
 
 ---
 
-### Example 2 — Concurrency with `move` Closure
+### Example 2 — `[ชื่อ Example]`
 
-**Purpose:** สาธิตการใช้ `move` keyword บังคับ Closure ย้าย Ownership เพื่อส่ง data ข้าม Thread อย่างปลอดภัย
+**Purpose:** `[ต้องการสาธิตอะไร]`
 
 ```rust
-use std::thread;
-
-fn demo_move_concurrency() {
-    println!("\n--- [Demo 2] Concurrency with `move` ---");
-
-    let thread_data = vec![10, 20, 30];
-
-    // หากไม่ใส่ keyword `move` ตัว Compiler จะเตือนว่า data อาจมีอายุสั้นกว่า Thread (Lifetime issue)
-    let handle = thread::spawn(move || {
-        println!("Thread worker ได้รับ data: {:?}", thread_data);
-    });
-
-    handle.join().unwrap();
-    // println!("{:?}", thread_data); // Compile Error: ownership ย้ายไปที่ Thread แล้ว
+fn main() {
+    // Write your runnable Rust code here
 }
 ```
 
 **Expected Output**
 
 ```text
---- [Demo 2] Concurrency with `move` ---
-Thread worker ได้รับ data: [10, 20, 30]
+[expected output]
 ```
 
 **Explanation**
 
-- `move` บังคับให้ `thread_data` ย้าย Ownership เข้าไปใน Closure ที่ส่งให้ Thread — ทำให้ Thread เป็นเจ้าของ data ได้อย่างสมบูรณ์
-- หากไม่ใส่ `move` Compiler จะ Error เพราะ `thread_data` อาจถูก drop ก่อนที่ Thread จะทำงานเสร็จ (Lifetime ไม่ตรง)
-- หลัง `move` แล้ว ตัวแปร `thread_data` ใน scope เดิมจะใช้ไม่ได้อีกต่อไป
-
----
-
-### Example 3 — Returning Closures (`impl Fn` vs `Box<dyn Fn>`)
-
-**Purpose:** สาธิตการคืนค่า Closure จากฟังก์ชัน ทั้งแบบ Static Dispatch (`impl Fn`) และ Dynamic Dispatch (`Box<dyn Fn>`)
-
-```rust
-// Static Dispatch (Zero-cost): Compiler รู้ type ตอน compile
-fn create_adder(x: i32) -> impl Fn(i32) -> i32 {
-    move |y| x + y
-}
-
-// Dynamic Dispatch (Heap Allocated): รองรับ Closure หลาย type ในค่าคืน
-fn make_operation(op: &str) -> Box<dyn Fn(i32, i32) -> i32> {
-    if op == "add" {
-        Box::new(|a, b| a + b)
-    } else {
-        Box::new(|a, b| a * b)
-    }
-}
-
-fn demo_returning_closures() {
-    println!("\n--- [Demo 3] Returning Closures ---");
-
-    let add_five = create_adder(5);
-    println!("create_adder(5)(10) = {}", add_five(10));
-
-    let calc = make_operation("multiply");
-    println!("make_operation('multiply')(4, 5) = {}", calc(4, 5));
-}
-```
-
-**Expected Output**
-
-```text
---- [Demo 3] Returning Closures ---
-create_adder(5)(10) = 15
-make_operation('multiply')(4, 5) = 20
-```
-
-**Explanation**
-
-- **`impl Fn(i32) -> i32`:** Compiler รู้ type ของ Closure ตอน compile → ไม่มี overhead (Static Dispatch / Zero-cost) แต่คืนได้แค่ Closure ชนิดเดียว
-- **`Box<dyn Fn(i32, i32) -> i32>`:** ใช้ Trait Object บน Heap → รองรับการคืน Closure ต่างชนิดกันผ่าน `if/else` (Dynamic Dispatch) แต่มี overhead จาก heap allocation และ vtable lookup
-- ทั้งสองแบบต้องใช้ `move` เพื่อย้าย captured variable (เช่น `x`) เข้า Closure ไม่ให้เกิด dangling reference
-
----
-
-### Example 4 — Functional Programming Pipeline (Zero-Cost Abstractions)
-
-**Purpose:** สาธิต Iterator Chain แบบ Functional (filter → map → fold) ที่ Rust compile เป็น loop เดียวโดยไม่มี Heap Overhead
-
-```rust
-fn demo_functional_pipeline() {
-    println!("\n--- [Demo 4] Functional Programming (Zero-Cost Abstractions) ---");
-
-    let numbers = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-    // Pipeline: Filter -> Map -> Fold (Declarative Style)
-    // Rust จะ compile เป็น Loop ภาษาเครื่องตัวเดียว ไม่มี Heap Overhead
-    let sum_of_even_squares: i32 = numbers
-        .iter()
-        .filter(|&&x| x % 2 == 0) // คัดเฉพาะเลขคู่
-        .map(|&x| x * x)          // ยกกำลังสอง
-        .fold(0, |acc, x| acc + x); // รวมผลลัพธ์
-
-    println!("ผลรวมของเลขคู่ยกกำลังสอง (2^2 + 4^2 + 6^2 + 8^2 + 10^2) = {}", sum_of_even_squares);
-}
-```
-
-**Expected Output**
-
-```text
---- [Demo 4] Functional Programming (Zero-Cost Abstractions) ---
-ผลรวมของเลขคู่ยกกำลังสอง (2^2 + 4^2 + 6^2 + 8^2 + 10^2) = 220
-```
-
-**Explanation**
-
-- **`.iter()`** สร้าง Iterator จาก Vector (ไม่ copy ข้อมูล แค่สร้าง pointer)
-- **`.filter(|&&x| x % 2 == 0)`** คัดเฉพาะเลขคู่ — `&&x` เป็นการ destructure double reference (`&&i32 → i32`)
-- **`.map(|&x| x * x)`** แปลงค่าแต่ละตัวเป็นยกกำลังสอง
-- **`.fold(0, |acc, x| acc + x)`** สะสมผลรวม เริ่มจาก 0 — เป็น consuming adaptor ที่ทำให้ทั้ง pipeline ทำงานจริง
-- Rust ใช้ **Zero-Cost Abstraction** คือ code ที่เขียนแบบ Declarative/Functional จะถูก compile เป็น loop ภาษาเครื่องตัวเดียว ประสิทธิภาพเท่ากับเขียน for-loop ด้วยมือ
+`[อธิบาย code]`
 
 ---
 
